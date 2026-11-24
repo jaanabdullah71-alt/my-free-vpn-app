@@ -1,0 +1,5 @@
+App Folder Structure Plan:
+- ui/ : Main screen layout (App Name, Connect/Disconnect button, Status, Server Info, Privacy Policy link)
+- vpn/ : Android VpnService and WireGuard connection handling
+- config/ : Server details and connection settings
+- build/ : Packaging and release notes (APK / AAB)
