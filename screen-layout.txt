@@ -1,0 +1,4 @@
+Top: App Name
+Middle: Connect / Disconnect Button + Status (Connected / Disconnected)
+Server Info: Selected Server Name
+Bottom: Privacy Policy Link
