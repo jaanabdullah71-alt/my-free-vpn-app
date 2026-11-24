@@ -1,0 +1,8 @@
+Protocol: WireGuard
+Backend: Remote VPN Server (VPS)
+Android System: VpnService
+Key Points:
+- User taps Connect and grants VpnService permission
+- Traffic routes through WireGuard tunnel to server
+- Watch server bandwidth and hosting costs for free users
+- Keep a clear Privacy Policy for Google Play Store
