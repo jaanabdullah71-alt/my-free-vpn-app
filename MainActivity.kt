@@ -11,23 +11,34 @@ import android.os.Looper
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
     private var isConnected = false
     private var connectedSeconds = 0L
+    private var serverIndex = 0
     private val vpnRequestCode = 1001
 
+    private val servers = listOf(
+        "Singapore — Free #1",
+        "Germany — Free #2",
+        "Netherlands — Free #3"
+    )
+
     private lateinit var tvStatus: TextView
+    private lateinit var tvSubtitle: TextView
+    private lateinit var tvServerName: TextView
     private lateinit var btnConnect: Button
+    private lateinit var cardServer: CardView
 
     private val timerHandler = Handler(Looper.getMainLooper())
     private val timerRunnable = object : Runnable {
         override fun run() {
             if (isConnected) {
                 connectedSeconds++
-                updateStatusWithTimer()
+                updateTimerText()
                 timerHandler.postDelayed(this, 1000L)
             }
         }
@@ -38,9 +49,18 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         tvStatus = findViewById(R.id.tvStatus)
+        tvSubtitle = findViewById(R.id.tvSubtitle)
+        tvServerName = findViewById(R.id.tvServerName)
         btnConnect = findViewById(R.id.btnConnect)
+        cardServer = findViewById(R.id.cardServer)
 
+        tvServerName.text = servers[serverIndex]
         syncStateWithSystem()
+
+        cardServer.setOnClickListener {
+            serverIndex = (serverIndex + 1) % servers.size
+            tvServerName.text = servers[serverIndex]
+        }
 
         btnConnect.setOnClickListener {
             if (!isConnected) {
@@ -115,18 +135,20 @@ class MainActivity : AppCompatActivity() {
             connectedSeconds = 0L
         } else if (!active) {
             isConnected = false
+            connectedSeconds = 0L
         }
 
         updateUi()
         if (isConnected) {
             startTimer()
         } else {
-            stopTimer()
+            timerHandler.removeCallbacks(timerRunnable)
         }
     }
 
     private fun startTimer() {
         timerHandler.removeCallbacks(timerRunnable)
+        updateTimerText()
         timerHandler.postDelayed(timerRunnable, 1000L)
     }
 
@@ -135,20 +157,22 @@ class MainActivity : AppCompatActivity() {
         connectedSeconds = 0L
     }
 
-    private fun updateStatusWithTimer() {
+    private fun updateTimerText() {
         val hours = connectedSeconds / 3600
         val minutes = (connectedSeconds % 3600) / 60
         val seconds = connectedSeconds % 60
         val formattedTime = String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds)
-        tvStatus.text = "Connected • $formattedTime"
+        tvSubtitle.text = "Duration: $formattedTime"
     }
 
     private fun updateUi() {
         if (isConnected) {
-            updateStatusWithTimer()
+            tvStatus.text = "Connected"
+            updateTimerText()
             btnConnect.text = "DISCONNECT"
         } else {
             tvStatus.text = "Disconnected"
+            tvSubtitle.text = "Tap connect to start VPN session"
             btnConnect.text = "CONNECT"
         }
     }
