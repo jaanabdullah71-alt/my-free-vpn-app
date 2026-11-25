@@ -50,7 +50,7 @@ class MyVpnService : VpnService() {
         if (vpnInterface != null) return
 
         val builder = Builder()
-            .setSession("Free VPN WireGuard")
+            .setSession("FreeVpnSession")
             .addAddress(config.clientAddress, 32)
             .addDnsServer(config.dnsServer)
             .addRoute("0.0.0.0", 0)
@@ -69,6 +69,7 @@ class MyVpnService : VpnService() {
 
     private fun stopVpnTunnel() {
         closeVpnInterface()
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
