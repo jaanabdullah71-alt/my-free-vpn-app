@@ -1,6 +1,9 @@
 package com.example.freevpn
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.VpnService
 import android.os.Bundle
 import android.widget.Button
@@ -22,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         tvStatus = findViewById(R.id.tvStatus)
         btnConnect = findViewById(R.id.btnConnect)
 
-        updateUi()
+        syncStateWithSystem()
 
         btnConnect.setOnClickListener {
             if (!isConnected) {
@@ -40,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        updateUi()
+        syncStateWithSystem()
     }
 
     @Deprecated("Deprecated in Java")
@@ -71,6 +74,18 @@ class MainActivity : AppCompatActivity() {
         startService(intent)
 
         isConnected = false
+        updateUi()
+    }
+
+    private fun isSystemVpnActive(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = cm.activeNetwork ?: return false
+        val capabilities = cm.getNetworkCapabilities(activeNetwork) ?: return false
+        return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+    }
+
+    private fun syncStateWithSystem() {
+        isConnected = isSystemVpnActive()
         updateUi()
     }
 
