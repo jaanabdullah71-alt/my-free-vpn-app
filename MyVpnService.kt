@@ -6,76 +6,67 @@ import android.os.ParcelFileDescriptor
 
 class MyVpnService : VpnService() {
 
-    private var vpnInterface: ParcelFileDescriptor? = null
+private var vpnInterface: ParcelFileDescriptor? = null
 
-    companion object {
-        const val ACTION_START = "com.example.freevpn.ACTION_START"
-        const val ACTION_STOP = "com.example.freevpn.ACTION_STOP"
-    }
+companion object {
+    const val ACTION_START = "com.example.freevpn.ACTION_START"
+    const val ACTION_STOP = "com.example.freevpn.ACTION_STOP"
+}
 
-    data class WireGuardConfig(
-        val privateKey: String,
-        val clientAddress: String,
-        val dnsServer: String,
-        val serverPublicKey: String,
-        val endpoint: String,
-        val allowedIps: String
-    )
+override fun onStartCommand(
+    intent: Intent?,
+    flags: Int,
+    startId: Int
+): Int {
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return when (intent?.action) {
-            ACTION_STOP -> {
-                closeVpnInterface()
-                stopSelf(startId)
-                START_NOT_STICKY
+    when (intent?.action) {
+
+        ACTION_START -> {
+            if (vpnInterface == null) {
+                try {
+                    vpnInterface = Builder()
+                        .setSession("Free VPN")
+                        .addAddress("10.0.0.2", 32)
+                        .establish()
+
+                    if (vpnInterface == null) {
+                        stopSelf()
+                    }
+
+                } catch (e: Exception) {
+                    closeVpn()
+                    stopSelf()
+                }
             }
-            else -> {
-                startVpnTunnel(loadSampleConfig())
-                START_STICKY
-            }
+        }
+
+        ACTION_STOP -> {
+            closeVpn()
+            stopSelf()
         }
     }
 
-    private fun loadSampleConfig(): WireGuardConfig {
-        return WireGuardConfig(
-            privateKey = "<client_private_key>",
-            clientAddress = "10.66.0.2",
-            dnsServer = "1.1.1.1",
-            serverPublicKey = "<server_public_key>",
-            endpoint = "<server_ip>:<port>",
-            allowedIps = "0.0.0.0/0"
-        )
+    return START_NOT_STICKY
+}
+
+private fun closeVpn() {
+    try {
+        vpnInterface?.close()
+    } catch (e: Exception) {
     }
 
-    private fun startVpnTunnel(config: WireGuardConfig) {
-        if (vpnInterface != null) return
+    vpnInterface = null
+}
 
-        val builder = Builder()
-            .setSession("FreeVpnSession")
-            .addAddress(config.clientAddress, 32)
-            .addDnsServer(config.dnsServer)
-            .addRoute("0.0.0.0", 0)
+override fun onRevoke() {
+    closeVpn()
+    stopSelf()
+    super.onRevoke()
+}
 
-        vpnInterface = builder.establish()
-    }
+override fun onDestroy() {
+    closeVpn()
+    super.onDestroy()
+}
 
-    private fun closeVpnInterface() {
-        try {
-            vpnInterface?.close()
-        } catch (_: Exception) {
-        } finally {
-            vpnInterface = null
-        }
-    }
-
-    override fun onRevoke() {
-        closeVpnInterface()
-        stopSelf()
-        super.onRevoke()
-    }
-
-    override fun onDestroy() {
-        closeVpnInterface()
-        super.onDestroy()
-    }
 }
