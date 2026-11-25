@@ -52,10 +52,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun stopVpnService(tvStatus: TextView, btnConnect: Button) {
-        val intent = Intent(this, MyVpnService::class.java).apply {
+        val stopIntent = Intent(this, MyVpnService::class.java).apply {
             action = "ACTION_STOP"
         }
-        startService(intent)
+        startService(stopIntent)
+        stopService(Intent(this, MyVpnService::class.java))
         isConnected = false
         tvStatus.text = "Disconnected"
         btnConnect.text = "Connect"
