@@ -8,6 +8,10 @@ class MyVpnService : VpnService() {
 
     private var vpnInterface: ParcelFileDescriptor? = null
 
+    companion object {
+        const val ACTION_STOP = "com.example.freevpn.ACTION_STOP"
+    }
+
     data class WireGuardConfig(
         val privateKey: String,
         val clientAddress: String,
@@ -18,17 +22,15 @@ class MyVpnService : VpnService() {
     )
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return when (intent?.action) {
-            "ACTION_STOP" -> {
-                stopVpnTunnel()
-                START_NOT_STICKY
-            }
-            else -> {
-                val sampleConfig = loadSampleConfig()
-                startVpnTunnel(sampleConfig)
-                START_STICKY
-            }
+        val action = intent?.action
+        if (action == ACTION_STOP || action == "ACTION_STOP") {
+            stopVpnTunnel()
+            return START_NOT_STICKY
         }
+
+        val sampleConfig = loadSampleConfig()
+        startVpnTunnel(sampleConfig)
+        return START_STICKY
     }
 
     private fun loadSampleConfig(): WireGuardConfig {
@@ -54,14 +56,28 @@ class MyVpnService : VpnService() {
         vpnInterface = builder.establish()
     }
 
+    private fun closeVpnInterface() {
+        try {
+            vpnInterface?.close()
+        } catch (_: Exception) {
+        } finally {
+            vpnInterface = null
+        }
+    }
+
     private fun stopVpnTunnel() {
-        vpnInterface?.close()
-        vpnInterface = null
+        closeVpnInterface()
         stopSelf()
     }
 
+    override fun onRevoke() {
+        closeVpnInterface()
+        stopSelf()
+        super.onRevoke()
+    }
+
     override fun onDestroy() {
-        stopVpnTunnel()
+        closeVpnInterface()
         super.onDestroy()
     }
 }
