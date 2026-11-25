@@ -9,6 +9,7 @@ class MyVpnService : VpnService() {
     private var vpnInterface: ParcelFileDescriptor? = null
 
     companion object {
+        const val ACTION_START = "com.example.freevpn.ACTION_START"
         const val ACTION_STOP = "com.example.freevpn.ACTION_STOP"
     }
 
@@ -22,15 +23,16 @@ class MyVpnService : VpnService() {
     )
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val action = intent?.action
-        if (action == ACTION_STOP || action == "ACTION_STOP") {
-            stopVpnTunnel()
-            return START_NOT_STICKY
+        return when (intent?.action) {
+            ACTION_STOP -> {
+                stopVpnTunnel()
+                START_NOT_STICKY
+            }
+            else -> {
+                startVpnTunnel(loadSampleConfig())
+                START_STICKY
+            }
         }
-
-        val sampleConfig = loadSampleConfig()
-        startVpnTunnel(sampleConfig)
-        return START_STICKY
     }
 
     private fun loadSampleConfig(): WireGuardConfig {
