@@ -12,53 +12,67 @@ class MainActivity : AppCompatActivity() {
     private var isConnected = false
     private val vpnRequestCode = 1001
 
+    private lateinit var tvStatus: TextView
+    private lateinit var btnConnect: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val tvStatus = findViewById<TextView>(R.id.tvStatus)
-        val btnConnect = findViewById<Button>(R.id.btnConnect)
+        tvStatus = findViewById(R.id.tvStatus)
+        btnConnect = findViewById(R.id.btnConnect)
 
         btnConnect.setOnClickListener {
+
             if (!isConnected) {
+
                 val intent = VpnService.prepare(this)
+
                 if (intent != null) {
                     startActivityForResult(intent, vpnRequestCode)
                 } else {
-                    startVpnService(tvStatus, btnConnect)
+                    startVpn()
                 }
+
             } else {
-                stopVpnService(tvStatus, btnConnect)
+                stopVpn()
             }
         }
     }
 
     @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == vpnRequestCode && resultCode == RESULT_OK) {
-            val tvStatus = findViewById<TextView>(R.id.tvStatus)
-            val btnConnect = findViewById<Button>(R.id.btnConnect)
-            startVpnService(tvStatus, btnConnect)
+
+        if (requestCode == vpnRequestCode) {
+            if (resultCode == RESULT_OK) {
+                startVpn()
+            }
         }
     }
 
-    private fun startVpnService(tvStatus: TextView, btnConnect: Button) {
-        val intent = Intent(this, MyVpnService::class.java).apply {
-            action = MyVpnService.ACTION_START
-        }
+    private fun startVpn() {
+
+        val intent = Intent(this, MyVpnService::class.java)
+        intent.action = MyVpnService.ACTION_START
+
         startService(intent)
+
         isConnected = true
-        tvStatus.text = "Connected"
+        tvStatus.text = "Connecting..."
         btnConnect.text = "Disconnect"
     }
 
-    private fun stopVpnService(tvStatus: TextView, btnConnect: Button) {
-        val stopIntent = Intent(this, MyVpnService::class.java).apply {
-            action = MyVpnService.ACTION_STOP
-        }
-        startService(stopIntent)
-        stopService(Intent(this, MyVpnService::class.java))
+    private fun stopVpn() {
+
+        val intent = Intent(this, MyVpnService::class.java)
+        intent.action = MyVpnService.ACTION_STOP
+
+        startService(intent)
 
         isConnected = false
         tvStatus.text = "Disconnected"
