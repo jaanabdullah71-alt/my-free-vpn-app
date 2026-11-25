@@ -1,6 +1,5 @@
 package com.example.freevpn
 
-import android.app.Activity
 import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
@@ -34,9 +33,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == vpnRequestCode && resultCode == Activity.RESULT_OK) {
+        if (requestCode == vpnRequestCode && resultCode == RESULT_OK) {
             val tvStatus = findViewById<TextView>(R.id.tvStatus)
             val btnConnect = findViewById<Button>(R.id.btnConnect)
             startVpnService(tvStatus, btnConnect)
