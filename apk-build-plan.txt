@@ -1,0 +1,13 @@
+APK Build Workflow Plan:
+
+1. Project Setup for Build:
+   - Ensure Gradle wrapper (gradlew), app/build.gradle.kts, and resource folders are in place.
+   - Include WireGuard Android dependency when moving to live tunneling.
+
+2. GitHub Actions Automated Build:
+   - Workflow location: .github/workflows/android-build.yml
+   - Setup Java (JDK 17) and Android SDK on GitHub runner.
+   - Run debug APK build command (./gradlew assembleDebug).
+
+3. Output Artifact:
+   - Download generated app-debug.apk from GitHub Actions artifacts to test on an Android device.
