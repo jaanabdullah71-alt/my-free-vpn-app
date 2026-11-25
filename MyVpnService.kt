@@ -25,7 +25,8 @@ class MyVpnService : VpnService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return when (intent?.action) {
             ACTION_STOP -> {
-                stopVpnTunnel()
+                closeVpnInterface()
+                stopSelf(startId)
                 START_NOT_STICKY
             }
             else -> {
@@ -65,12 +66,6 @@ class MyVpnService : VpnService() {
         } finally {
             vpnInterface = null
         }
-    }
-
-    private fun stopVpnTunnel() {
-        closeVpnInterface()
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     override fun onRevoke() {
